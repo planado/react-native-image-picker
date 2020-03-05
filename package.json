@@ -1,6 +1,6 @@
 {
   "name": "react-native-image-picker",
-  "version": "2.3.1",
+  "version": "2.3.2",
   "description": "A React Native module that allows you to use native UI to select media from the device library or directly from the camera",
   "react-native": "src/index.ts",
   "types": "lib/typescript/index.d.ts",
@@ -42,8 +42,7 @@
     "validate:typescript": "tsc --project ./ --noEmit",
     "test:jest": "jest \"/src/\"",
     "ci:publish": "yarn semantic-release",
-    "semantic-release": "semantic-release",
-    "prepare": "bob build"
+    "semantic-release": "semantic-release"
   },
   "keywords": [
     "react-native",
