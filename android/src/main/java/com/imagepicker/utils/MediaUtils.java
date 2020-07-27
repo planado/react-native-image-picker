@@ -262,59 +262,62 @@ public class MediaUtils
         ReadExifResult result;
         int currentRotation = 0;
 
-        try
-        {
-            ExifInterface exif = new ExifInterface(imageConfig.original.getAbsolutePath());
+        // try
+        // {
+        //     Log.i("TAG", imageConfig.original.getAbsolutePath());
+        //     ExifInterface exif = new ExifInterface(imageConfig.original.getAbsolutePath());
 
-            // extract lat, long, and timestamp and add to the response
-            float[] latlng = new float[2];
-            exif.getLatLong(latlng);
-            float latitude = latlng[0];
-            float longitude = latlng[1];
-            if(latitude != 0f || longitude != 0f)
-            {
-                responseHelper.putDouble("latitude", latitude);
-                responseHelper.putDouble("longitude", longitude);
-            }
+        //     // extract lat, long, and timestamp and add to the response
+        //     float[] latlng = new float[2];
+        //     exif.getLatLong(latlng);
+        //     float latitude = latlng[0];
+        //     float longitude = latlng[1];
+        //     if(latitude != 0f || longitude != 0f)
+        //     {
+        //         responseHelper.putDouble("latitude", latitude);
+        //         responseHelper.putDouble("longitude", longitude);
+        //     }
 
-            final String timestamp = exif.getAttribute(ExifInterface.TAG_DATETIME);
-            final SimpleDateFormat exifDatetimeFormat = new SimpleDateFormat("yyyy:MM:dd HH:mm:ss");
+        //     final String timestamp = exif.getAttribute(ExifInterface.TAG_DATETIME);
+        //     final SimpleDateFormat exifDatetimeFormat = new SimpleDateFormat("yyyy:MM:dd HH:mm:ss");
 
-            final DateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-            isoFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+        //     final DateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+        //     isoFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 
-            try
-            {
-                final String isoFormatString = new StringBuilder(isoFormat.format(exifDatetimeFormat.parse(timestamp)))
-                        .append("Z").toString();
-                responseHelper.putString("timestamp", isoFormatString);
-            }
-            catch (Exception e) {}
+        //     try
+        //     {
+        //         final String isoFormatString = new StringBuilder(isoFormat.format(exifDatetimeFormat.parse(timestamp)))
+        //                 .append("Z").toString();
+        //         responseHelper.putString("timestamp", isoFormatString);
+        //     }
+        //     catch (Exception e) {}
 
-            int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
-            boolean isVertical = true;
-            switch (orientation) {
-                case ExifInterface.ORIENTATION_ROTATE_270:
-                    isVertical = false;
-                    currentRotation = 270;
-                    break;
-                case ExifInterface.ORIENTATION_ROTATE_90:
-                    isVertical = false;
-                    currentRotation = 90;
-                    break;
-                case ExifInterface.ORIENTATION_ROTATE_180:
-                    currentRotation = 180;
-                    break;
-            }
-            responseHelper.putInt("originalRotation", currentRotation);
-            responseHelper.putBoolean("isVertical", isVertical);
-            result = new ReadExifResult(currentRotation, null);
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-            result = new ReadExifResult(currentRotation, e);
-        }
+        //     int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+        //     boolean isVertical = true;
+        //     switch (orientation) {
+        //         case ExifInterface.ORIENTATION_ROTATE_270:
+        //             isVertical = false;
+        //             currentRotation = 270;
+        //             break;
+        //         case ExifInterface.ORIENTATION_ROTATE_90:
+        //             isVertical = false;
+        //             currentRotation = 90;
+        //             break;
+        //         case ExifInterface.ORIENTATION_ROTATE_180:
+        //             currentRotation = 180;
+        //             break;
+        //     }
+        //     responseHelper.putInt("originalRotation", currentRotation);
+        //     responseHelper.putBoolean("isVertical", isVertical);
+        //     result = new ReadExifResult(currentRotation, null);
+        // }
+        // catch (IOException e)
+        // {
+        //     e.printStackTrace();
+        //     result = new ReadExifResult(currentRotation, e);
+        // }
+
+        result = new ReadExifResult(currentRotation, null);
 
         return result;
     }
