@@ -105,83 +105,108 @@ public class MediaUtils
                                                        int initialHeight,
                                                        final int requestCode)
     {
-        BitmapFactory.Options imageOptions = new BitmapFactory.Options();
-        imageOptions.inScaled = false;
-        imageOptions.inSampleSize = 1;
+        try {
+            BitmapFactory.Options imageOptions = new BitmapFactory.Options();
+            imageOptions.inScaled = false;
+            imageOptions.inSampleSize = 1;
 
-        if (imageConfig.maxWidth != 0 || imageConfig.maxHeight != 0) {
-            while ((imageConfig.maxWidth == 0 || initialWidth > 2 * imageConfig.maxWidth) &&
-                   (imageConfig.maxHeight == 0 || initialHeight > 2 * imageConfig.maxHeight)) {
-                imageOptions.inSampleSize *= 2;
-                initialHeight /= 2;
-                initialWidth /= 2;
+            if (imageConfig.maxWidth != 0 || imageConfig.maxHeight != 0) {
+                while ((imageConfig.maxWidth == 0 || initialWidth > 2 * imageConfig.maxWidth) &&
+                    (imageConfig.maxHeight == 0 || initialHeight > 2 * imageConfig.maxHeight)) {
+                    imageOptions.inSampleSize *= 2;
+                    initialHeight /= 2;
+                    initialWidth /= 2;
+                }
             }
-        }
 
-        Bitmap photo = BitmapFactory.decodeFile(imageConfig.original.getAbsolutePath(), imageOptions);
+            Bitmap photo = BitmapFactory.decodeFile(imageConfig.original.getAbsolutePath(), imageOptions);
 
-        if (photo == null)
-        {
-            return imageConfig;
-        }
-
-        ImageConfig result = imageConfig;
-
-        Bitmap scaledPhoto = null;
-        if (imageConfig.maxWidth == 0 || imageConfig.maxWidth > initialWidth)
-        {
-            result = result.withMaxWidth(initialWidth);
-        }
-        if (imageConfig.maxHeight == 0 || imageConfig.maxWidth > initialHeight)
-        {
-            result = result.withMaxHeight(initialHeight);
-        }
-
-        double widthRatio = (double) result.maxWidth / initialWidth;
-        double heightRatio = (double) result.maxHeight / initialHeight;
-
-        double ratio = (widthRatio < heightRatio)
-                ? widthRatio
-                : heightRatio;
-
-        Matrix matrix = new Matrix();
-        matrix.postRotate(result.rotation);
-        matrix.postScale((float) ratio, (float) ratio);
-
-        ExifInterface exif;
-        try
-        {
-            exif = new ExifInterface(result.original.getAbsolutePath());
-
-            int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, 0);
-
-            switch (orientation)
+            if (photo == null)
             {
-                case 6:
-                    matrix.postRotate(90);
-                    break;
-                case 3:
-                    matrix.postRotate(180);
-                    break;
-                case 8:
-                    matrix.postRotate(270);
-                    break;
+                return imageConfig;
             }
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-        }
 
-        scaledPhoto = Bitmap.createBitmap(photo, 0, 0, photo.getWidth(), photo.getHeight(), matrix, true);
-        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-        scaledPhoto.compress(Bitmap.CompressFormat.JPEG, result.quality, bytes);
+            ImageConfig result = imageConfig;
 
-        final boolean forceLocal = requestCode == REQUEST_LAUNCH_IMAGE_CAPTURE;
-        final File resized = createNewFile(context, options, !forceLocal);
+            Bitmap scaledPhoto = null;
+            if (imageConfig.maxWidth == 0 || imageConfig.maxWidth > initialWidth)
+            {
+                result = result.withMaxWidth(initialWidth);
+            }
+            if (imageConfig.maxHeight == 0 || imageConfig.maxWidth > initialHeight)
+            {
+                result = result.withMaxHeight(initialHeight);
+            }
 
-        if (resized == null)
-        {
+            double widthRatio = (double) result.maxWidth / initialWidth;
+            double heightRatio = (double) result.maxHeight / initialHeight;
+
+            double ratio = (widthRatio < heightRatio)
+                    ? widthRatio
+                    : heightRatio;
+
+            Matrix matrix = new Matrix();
+            matrix.postRotate(result.rotation);
+            matrix.postScale((float) ratio, (float) ratio);
+
+            ExifInterface exif;
+            try
+            {
+                exif = new ExifInterface(result.original.getAbsolutePath());
+
+                int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, 0);
+
+                switch (orientation)
+                {
+                    case 6:
+                        matrix.postRotate(90);
+                        break;
+                    case 3:
+                        matrix.postRotate(180);
+                        break;
+                    case 8:
+                        matrix.postRotate(270);
+                        break;
+                }
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+            }
+
+            scaledPhoto = Bitmap.createBitmap(photo, 0, 0, photo.getWidth(), photo.getHeight(), matrix, true);
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+            scaledPhoto.compress(Bitmap.CompressFormat.JPEG, result.quality, bytes);
+
+            final boolean forceLocal = requestCode == REQUEST_LAUNCH_IMAGE_CAPTURE;
+            final File resized = createNewFile(context, options, !forceLocal);
+
+            if (resized == null)
+            {
+                if (photo != null)
+                {
+                    photo.recycle();
+                    photo = null;
+                }
+                if (scaledPhoto != null)
+                {
+                    scaledPhoto.recycle();
+                    scaledPhoto = null;
+                }
+                return imageConfig;
+            }
+
+            result = result.withResizedFile(resized);
+
+            try (FileOutputStream fos = new FileOutputStream(result.resized))
+            {
+                bytes.writeTo(fos);
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+            }
+
             if (photo != null)
             {
                 photo.recycle();
@@ -192,31 +217,12 @@ public class MediaUtils
                 scaledPhoto.recycle();
                 scaledPhoto = null;
             }
-            return imageConfig;
-        }
+            return result;
 
-        result = result.withResizedFile(resized);
-
-        try (FileOutputStream fos = new FileOutputStream(result.resized))
-        {
-            bytes.writeTo(fos);
-        }
-        catch (IOException e)
-        {
+        } catch (Exception e) {
             e.printStackTrace();
+            return  null;
         }
-
-        if (photo != null)
-        {
-            photo.recycle();
-            photo = null;
-        }
-        if (scaledPhoto != null)
-        {
-            scaledPhoto.recycle();
-            scaledPhoto = null;
-        }
-        return result;
     }
 
     public static void removeUselessFiles(final int requestCode,
