@@ -150,28 +150,22 @@ public class MediaUtils
             matrix.postScale((float) ratio, (float) ratio);
 
             ExifInterface exif;
-            try
-            {
-                exif = new ExifInterface(result.original.getAbsolutePath());
 
-                int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, 0);
+            exif = new ExifInterface(result.original.getAbsolutePath());
 
-                switch (orientation)
-                {
-                    case 6:
-                        matrix.postRotate(90);
-                        break;
-                    case 3:
-                        matrix.postRotate(180);
-                        break;
-                    case 8:
-                        matrix.postRotate(270);
-                        break;
-                }
-            }
-            catch (IOException e)
+            int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, 0);
+
+            switch (orientation)
             {
-                e.printStackTrace();
+                case 6:
+                    matrix.postRotate(90);
+                    break;
+                case 3:
+                    matrix.postRotate(180);
+                    break;
+                case 8:
+                    matrix.postRotate(270);
+                    break;
             }
 
             scaledPhoto = Bitmap.createBitmap(photo, 0, 0, photo.getWidth(), photo.getHeight(), matrix, true);
