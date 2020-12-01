@@ -219,7 +219,7 @@ public class MediaUtils
         } catch (OutOfMemoryError e) {
             e.printStackTrace();
             return imageConfig;
-        };
+        }
     }
 
     public static void removeUselessFiles(final int requestCode,
